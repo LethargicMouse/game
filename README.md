@@ -1,6 +1,9 @@
 # _TODO: come up with a good name_
 _TODO: write a description of a game_
 
+## Controls:
+- `CapsLock` or `Q` to quit the game
+
 ## Developer's guide:
 Here are the instructions for game developers
 

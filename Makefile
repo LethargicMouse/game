@@ -7,3 +7,6 @@ $(GAME): game.cpp
 
 run: $(GAME)
 	./$(GAME)
+
+clean:
+	rm -rf $(BUILD)/*
