@@ -11,8 +11,7 @@ Here are the instructions for game developers
 Install `make`, `g++`, `sfml` with your favourite package manager
 
 ### Windows prerequisites
-- install `chocolatey` as written [here](https://chocolatey.org/install#individual).
-- run `choko install make` in your terminal or powershell
+Find me, I will cry but will setup everything on your pc
 
 ### Make commands
 - `$ make` will compile the game and output `game` executable in `build` folder
