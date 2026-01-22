@@ -41,6 +41,7 @@ void Game::quit() { window.close(); }
 
 void Game::draw() {
   window.clear();
+  world.draw(window);
   player.draw(window);
   window.display();
 }

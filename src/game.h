@@ -1,8 +1,8 @@
 #ifndef GAME_H
 #define GAME_H
+
 #include "player.h"
-#include <SFML/Graphics/RenderWindow.hpp>
-#include <SFML/Window/Event.hpp>
+#include "world.h"
 
 const std::string GAME_TITLE = "the game";
 
@@ -29,6 +29,7 @@ private:
 
   sf::RenderWindow window;
   Player player;
+  World world;
 };
 
 #endif
