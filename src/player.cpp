@@ -2,6 +2,9 @@
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/System/Vector2.hpp>
 
+inline constexpr float PLAYER_RADIUS = TILE_SIZE * 0.5;
+inline constexpr float PLAYER_SPEED = 100; // in pixels/sec
+
 Player::Player() : shape(PLAYER_RADIUS) { shape.setFillColor(sf::Color::Blue); }
 
 void Player::draw(sf::RenderWindow &window) {
@@ -12,7 +15,7 @@ void Player::draw(sf::RenderWindow &window) {
   window.draw(shape);
 }
 
-void Player::update() {
+void Player::update(sf::Time dt) {
   sf::Vector2f v;
   if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::W))
     v.y -= 1.f;
@@ -22,10 +25,9 @@ void Player::update() {
     v.y += 1.f;
   if (sf::Keyboard::isKeyPressed(sf::Keyboard::Scan::D))
     v.x += 1.f;
-  float dt = 0.001; // TODO get actual delta time
   if (v == sf::Vector2f())
     return;
-  pos += v.normalized() * PLAYER_SPEED * dt;
+  pos += v.normalized() * PLAYER_SPEED * dt.asSeconds();
 }
 
 sf::Vector2f Player::get_pos() const { return pos; }

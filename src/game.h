@@ -29,6 +29,9 @@ private:
   sf::RenderWindow window;
   Player player;
   World world;
+  sf::Clock clock;
+  // mt19937 is a random number generator
+  std::mt19937 rng;
 };
 
 #endif

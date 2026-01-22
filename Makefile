@@ -1,4 +1,4 @@
-COMPILE = g++ -lsfml-system -lsfml-window -lsfml-graphics -Wall -Wextra
+COMPILE = g++ -lsfml-system -lsfml-window -lsfml-graphics -Wall -Wextra -std=c++20 -g
 BUILD = build
 NAME = game
 GAME = $(BUILD)/$(NAME)

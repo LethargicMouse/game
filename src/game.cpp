@@ -1,10 +1,15 @@
 #include "game.h"
 #include <SFML/Window/Keyboard.hpp>
 
+const sf::Vector2u SCREEN_SIZE = {1920, 1080};
+
 Game::Game()
-    : window(sf::VideoMode({1920, 1080}), GAME_TITLE, sf::Style::None,
+    : window(sf::VideoMode(SCREEN_SIZE), GAME_TITLE, sf::Style::None,
              sf::State::Fullscreen),
-      player() {}
+      player(), world(&rng) {
+  std::random_device rd;
+  rng = std::mt19937(rd());
+}
 
 void Game::main_loop() {
   while (is_running()) {
@@ -17,7 +22,9 @@ bool Game::is_running() const { return window.isOpen(); }
 
 void Game::update() {
   handle_events();
-  player.update();
+  // get the duration of last game tick
+  sf::Time dt = clock.restart();
+  player.update(dt);
 }
 
 void Game::handle_events() {
