@@ -1,9 +1,10 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
+#include "world.h"
 #include <SFML/Graphics.hpp>
 
-const float PLAYER_RADIUS = 50.f;
+inline constexpr float PLAYER_RADIUS = TILE_SIZE * 0.5;
 
 class Player {
 public:

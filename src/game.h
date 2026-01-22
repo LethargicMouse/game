@@ -2,7 +2,6 @@
 #define GAME_H
 
 #include "player.h"
-#include "world.h"
 
 const std::string GAME_TITLE = "the game";
 
