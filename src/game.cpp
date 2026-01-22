@@ -6,7 +6,7 @@ const sf::Vector2u SCREEN_SIZE = {1920, 1080};
 Game::Game()
     : window(sf::VideoMode(SCREEN_SIZE), GAME_TITLE, sf::Style::None,
              sf::State::Fullscreen),
-      player(), world(&rng) {
+      player(), world(&player.get_pos()) {
   std::random_device rd;
   rng = std::mt19937(rd());
 }
@@ -25,6 +25,9 @@ void Game::update() {
   // get the duration of last game tick
   sf::Time dt = clock.restart();
   player.update(dt);
+  // world is better to update after player cuz it recalculates based on
+  // player's new pos
+  world.update();
 }
 
 void Game::handle_events() {

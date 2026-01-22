@@ -12,7 +12,7 @@ public:
 
   void update(sf::Time dt);
 
-  sf::Vector2f get_pos() const;
+  sf::Vector2f const &get_pos() const;
 
 private:
   sf::CircleShape shape;

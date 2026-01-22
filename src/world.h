@@ -13,9 +13,11 @@ public:
 
 class World {
 public:
-  World(std::mt19937 *rng);
+  World(const sf::Vector2f *player_pos);
 
   void draw(sf::RenderWindow &window, const sf::Vector2f origin);
+
+  void update();
 
 private:
   void regenerate_tiles();
@@ -23,11 +25,8 @@ private:
   Tile new_tile(sf::Vector2i pos);
 
   std::map<sf::Vector2i, Tile, Vector2iComparator> tiles;
-  // bullshit, not uniform at ALL
-  // GOD I hate C++
-  std::uniform_int_distribution<unsigned int> dist;
-  // mt19937 is a random number generator
-  std::mt19937 *rng;
+  const sf::Vector2f *player_pos;
+  sf::Vector2i player_grid_pos;
 };
 
 #endif
