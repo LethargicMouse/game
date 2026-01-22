@@ -3,9 +3,9 @@ BUILD = build
 NAME = game
 GAME = $(BUILD)/$(NAME)
 SRC = src
-SOURCES = $(SRC)/main.cpp $(SRC)/game.cpp
+SOURCES = $(SRC)/main.cpp $(SRC)/game.cpp $(SRC)/player.cpp
 
-$(GAME): $(MAIN)
+$(GAME): $(SOURCES)
 	$(COMPILE) -o $(GAME) $(SOURCES)
 
 run: $(GAME)

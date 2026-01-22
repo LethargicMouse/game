@@ -1,8 +1,10 @@
 #include "game.h"
+#include <SFML/Window/Keyboard.hpp>
 
 Game::Game()
     : window(sf::VideoMode({1920, 1080}), GAME_TITLE, sf::Style::None,
-             sf::State::Fullscreen) {}
+             sf::State::Fullscreen),
+      player() {}
 
 void Game::main_loop() {
   while (is_running()) {
@@ -30,6 +32,7 @@ void Game::handle_event(std::optional<sf::Event> event) {
 void Game::handle_key_pressed(const sf::Event::KeyPressed *key_pressed) {
   assert(key_pressed != nullptr);
   if (key_pressed->scancode == sf::Keyboard::Scancode::CapsLock ||
+      key_pressed->scancode == sf::Keyboard::Scancode::Escape ||
       key_pressed->scancode == sf::Keyboard::Scancode::Q)
     quit();
 }
@@ -38,5 +41,6 @@ void Game::quit() { window.close(); }
 
 void Game::draw() {
   window.clear();
+  player.draw(window);
   window.display();
 }

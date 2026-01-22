@@ -1,3 +1,6 @@
+#ifndef GAME_H
+#define GAME_H
+#include "player.h"
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Window/Event.hpp>
 
@@ -10,8 +13,6 @@ public:
   void main_loop();
 
 private:
-  sf::RenderWindow window;
-
   bool is_running() const;
 
   void update();
@@ -25,4 +26,9 @@ private:
   void quit();
 
   void draw();
+
+  sf::RenderWindow window;
+  Player player;
 };
+
+#endif
