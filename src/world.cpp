@@ -58,15 +58,24 @@ void World::regenerate_tiles() {
     // not generating past walls and such cuz they're not transparent
     if (tiles[pos].is_wall())
       continue;
-    if (depth == MAX_DEPTH)
+    if (depth == MAX_DEPTH) {
+      for (auto dir : DIRS) {
+        auto neighbour = pos + dir;
+        if (used.contains(neighbour))
+          continue;
+        auto tile = tiles.find(neighbour);
+        if (tile != tiles.end())
+          tiles.erase(tile);
+      }
       continue;
+    }
     for (auto dir : DIRS) {
       auto neighbour = pos + dir;
-      if (!used.contains(neighbour)) {
-        if (!tiles.contains(neighbour))
-          tiles[neighbour] = new_tile(neighbour);
-        queue.push_back({neighbour, depth + 1});
-      }
+      if (used.contains(neighbour))
+        continue;
+      if (!tiles.contains(neighbour))
+        tiles[neighbour] = new_tile(neighbour);
+      queue.push_back({neighbour, depth + 1});
     }
   }
 }
