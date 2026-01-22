@@ -2,23 +2,31 @@
 #define TILE_H
 
 #include <SFML/Graphics.hpp>
+#include <cmath>
 
-inline constexpr float TILE_SIZE = 100;
+inline constexpr float TILE_SIZE = 50;
+// on such squared distance tile will not be visible
+inline constexpr unsigned int DARK_DIST = 20;
+const float DARK_DIST_SQRT = std::sqrt((float)DARK_DIST);
 
 enum class TileKind { Wall, Floor };
 
 class Tile {
 public:
   Tile();
-  Tile(TileKind kind, sf::Vector2i pos);
+  Tile(TileKind kind, sf::Vector2i pos, unsigned int dist);
 
   void draw(sf::RenderWindow &window, sf::Vector2f origin);
 
   bool is_wall() const;
 
+  // update based on new squared distance to the player
+  void set_dist(unsigned int dist);
+
 private:
   sf::RectangleShape shape;
   TileKind kind;
+  sf::Color color;
   sf::Vector2f pos;
 };
 

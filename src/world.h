@@ -2,8 +2,8 @@
 #define WORLD_H
 
 #include "tile.h"
+#include <deque>
 #include <map>
-#include <random>
 
 // required to use `std::map<sf::Vector2i, _>`
 struct Vector2iComparator {
@@ -27,6 +27,7 @@ private:
   std::map<sf::Vector2i, Tile, Vector2iComparator> tiles;
   const sf::Vector2f *player_pos;
   sf::Vector2i player_grid_pos;
+  std::deque<sf::Vector2i> queue;
 };
 
 #endif

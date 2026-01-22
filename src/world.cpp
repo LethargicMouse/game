@@ -1,9 +1,7 @@
 #include "world.h"
+#include "tile.h"
 #include <SFML/System/Vector2.hpp>
-#include <deque>
-#include <set>
-
-inline constexpr unsigned int MAX_DEPTH = 7;
+#include <random>
 
 bool Vector2iComparator::operator()(const sf::Vector2i a,
                                     const sf::Vector2i b) const {
@@ -16,7 +14,8 @@ sf::Vector2i grid_pos(sf::Vector2f pos) {
 
 World::World(const sf::Vector2f *player_pos)
     : player_pos(player_pos), player_grid_pos(grid_pos(*player_pos)) {
-  tiles[player_grid_pos] = Tile(TileKind::Floor, player_grid_pos);
+  tiles[player_grid_pos] = Tile(TileKind::Floor, player_grid_pos, 0);
+  queue.push_back(player_grid_pos);
   regenerate_tiles();
 }
 
@@ -35,7 +34,12 @@ template <typename T> T real_random_between(T min, T max) {
   return dist(get_rng());
 }
 
-inline constexpr float WALL_PROB_BORDER = 0.2;
+// squared distance between Vector2i's
+unsigned int distance2i(const sf::Vector2i a, const sf::Vector2i b) {
+  return (a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y);
+}
+
+inline constexpr float WALL_PROB_BORDER = 0.4;
 
 Tile World::new_tile(sf::Vector2i pos) {
   // get random number in given distribution
@@ -44,40 +48,59 @@ Tile World::new_tile(sf::Vector2i pos) {
   TileKind kind = TileKind::Floor;
   if (number <= WALL_PROB_BORDER)
     kind = TileKind::Wall;
-  return Tile(kind, pos);
+  return Tile(kind, pos, distance2i(player_grid_pos, pos));
 }
 
+// Purest, first-class cosmic horror, for the sake of your young and innocent
+// brain dont even try to understand what the freaking hell is happening here,
+// for God left this place long ago
 void World::regenerate_tiles() {
-  std::deque<std::pair<sf::Vector2i, unsigned int>> queue;
-  std::set<sf::Vector2i, Vector2iComparator> used;
-  queue.push_back({player_grid_pos, 0});
+  std::vector<sf::Vector2i> new_queue;
+  for (auto &[pos, tile] : tiles) {
+    auto dist = distance2i(player_grid_pos, pos);
+    if (dist > DARK_DIST)
+      new_queue.push_back(pos); // diabolically reusing vectors
+    else
+      tile.set_dist(dist);
+  }
+  for (auto pos : new_queue) {
+    tiles.erase(pos);
+    for (auto dir : DIRS) {
+      auto neigh = pos + dir;
+      if (tiles.contains(neigh))
+        queue.push_back(neigh); // they are now on border
+    }
+  }
+  new_queue.clear();
+
   while (!queue.empty()) {
-    auto [pos, depth] = queue.front();
+    auto pos = queue.front();
     queue.pop_front();
-    used.insert(pos);
+    if (!tiles.contains(pos))
+      continue; // a friendly ghost visited this haunted code, just skip it
     // not generating past walls and such cuz they're not transparent
     if (tiles[pos].is_wall())
       continue;
-    if (depth == MAX_DEPTH) {
-      for (auto dir : DIRS) {
-        auto neighbour = pos + dir;
-        if (used.contains(neighbour))
-          continue;
-        auto tile = tiles.find(neighbour);
-        if (tile != tiles.end())
-          tiles.erase(tile);
-      }
-      continue;
-    }
+    bool in_new_queue = false;
     for (auto dir : DIRS) {
       auto neighbour = pos + dir;
-      if (used.contains(neighbour))
+      if (tiles.contains(neighbour))
         continue;
-      if (!tiles.contains(neighbour))
-        tiles[neighbour] = new_tile(neighbour);
-      queue.push_back({neighbour, depth + 1});
+      if (distance2i(player_grid_pos, neighbour) > DARK_DIST) {
+        if (!in_new_queue) {
+          // tile is on border, adding to stash
+          in_new_queue = true;
+          new_queue.push_back(pos);
+        }
+        continue;
+      }
+      tiles[neighbour] = new_tile(neighbour);
+      queue.push_back(neighbour);
     }
   }
+  // stash border tiles to regenerate starting from them next time
+  for (auto &pos : new_queue)
+    queue.push_back(pos);
 }
 
 void World::draw(sf::RenderWindow &window, const sf::Vector2f origin) {

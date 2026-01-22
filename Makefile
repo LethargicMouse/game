@@ -13,7 +13,7 @@ $(BUILD)/game: $(OBJECTS)
 	$(COMPILE) -o $(GAME) $(OBJECTS)
 
 # freakier magic
-$(BUILD)/%.o: $(SRC)/%.cpp $(SRC)/%.h
+$(BUILD)/%.o: $(SRC)/%.cpp $(SRC)/*.h
 	$(COMPILE) -c $< -o $@
 
 run: $(GAME)

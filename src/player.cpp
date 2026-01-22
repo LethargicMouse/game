@@ -2,7 +2,7 @@
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/System/Vector2.hpp>
 
-inline constexpr float PLAYER_RADIUS = TILE_SIZE * 0.5;
+inline constexpr float PLAYER_RADIUS = TILE_SIZE * 0.3;
 inline constexpr float PLAYER_SPEED = 200; // in pixels/sec
 
 Player::Player() : shape(PLAYER_RADIUS) { shape.setFillColor(sf::Color::Blue); }
