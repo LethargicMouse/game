@@ -15,11 +15,15 @@ void Game::main_loop() {
 
 bool Game::is_running() const { return window.isOpen(); }
 
-void Game::update() { handle_events(); }
+void Game::update() {
+  handle_events();
+  player.update();
+}
 
 void Game::handle_events() {
-  while (auto event = window.pollEvent())
+  while (auto event = window.pollEvent()) {
     handle_event(event);
+  }
 }
 
 void Game::handle_event(std::optional<sf::Event> event) {
@@ -33,15 +37,17 @@ void Game::handle_key_pressed(const sf::Event::KeyPressed *key_pressed) {
   assert(key_pressed != nullptr);
   if (key_pressed->scancode == sf::Keyboard::Scancode::CapsLock ||
       key_pressed->scancode == sf::Keyboard::Scancode::Escape ||
-      key_pressed->scancode == sf::Keyboard::Scancode::Q)
+      key_pressed->scancode == sf::Keyboard::Scancode::Q) {
     quit();
+    return;
+  }
 }
 
 void Game::quit() { window.close(); }
 
 void Game::draw() {
   window.clear();
-  world.draw(window);
+  world.draw(window, player.get_pos());
   player.draw(window);
   window.display();
 }
