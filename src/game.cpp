@@ -1,4 +1,5 @@
 #include "game.h"
+#include <SFML/System/Vector2.hpp>
 #include <SFML/Window/Keyboard.hpp>
 
 bool Vector2iComparator::operator()(const sf::Vector2i left,
@@ -14,7 +15,6 @@ Game::Game()
              sf::State::Fullscreen),
       player_shape(PLAYER_RADIUS) {
   player_shape.setFillColor(sf::Color::Blue);
-
   tiles[player_grid_pos] = Tile(TileKind::Floor, player_grid_pos, 0);
   regenerate_tiles();
 }
@@ -161,6 +161,8 @@ void Game::regenerate_tiles() {
   std::deque<sf::Vector2i> queue;
   queue.push_back(player_grid_pos);
   tiles[player_grid_pos].set_dist(0);
+  queue.push_back(light_source);
+  tiles[light_source].set_dist(0);
   while (!queue.empty()) {
     auto pos = queue.front();
     queue.pop_front();
