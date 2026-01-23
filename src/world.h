@@ -13,11 +13,13 @@ public:
 
 class World {
 public:
-  World(const sf::Vector2f *player_pos);
+  World(const sf::Vector2i *player_grid_pos);
 
   void draw(sf::RenderWindow &window, const sf::Vector2f origin);
 
   void update();
+
+  Tile const& get_tile(const sf::Vector2i pos);
 
 private:
   void regenerate_tiles();
@@ -25,8 +27,8 @@ private:
   Tile new_tile(sf::Vector2i pos);
 
   std::map<sf::Vector2i, Tile, Vector2iComparator> tiles;
-  const sf::Vector2f *player_pos;
-  sf::Vector2i player_grid_pos;
+  const sf::Vector2i *player_grid_pos;
+  sf::Vector2i old_player_grid_pos;
   std::deque<sf::Vector2i> queue;
 };
 

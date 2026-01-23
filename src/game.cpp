@@ -6,13 +6,13 @@ const sf::Vector2u SCREEN_SIZE = {1920, 1080};
 Game::Game()
     : window(sf::VideoMode(SCREEN_SIZE), GAME_TITLE, sf::Style::None,
              sf::State::Fullscreen),
-      player(), world(&player.get_pos()) {}
+      player(&world), world(&player.get_grid_pos()) {}
 
 void Game::main_loop() {
   while (is_running()) {
     update();
     draw();
-  }
+   }
 }
 
 bool Game::is_running() const { return window.isOpen(); }
@@ -46,7 +46,6 @@ void Game::handle_key_pressed(const sf::Event::KeyPressed *key_pressed) {
       key_pressed->scancode == sf::Keyboard::Scancode::Escape ||
       key_pressed->scancode == sf::Keyboard::Scancode::Q) {
     quit();
-    return;
   }
 }
 

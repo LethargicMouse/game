@@ -6,7 +6,7 @@
 
 class Player {
 public:
-  Player();
+  Player(World* world);
 
   void draw(sf::RenderWindow &window);
 
@@ -14,9 +14,14 @@ public:
 
   sf::Vector2f const &get_pos() const;
 
+  sf::Vector2i const &get_grid_pos() const;
+
 private:
   sf::CircleShape shape;
   sf::Vector2f pos;
+  sf::Vector2i grid_pos;
+  // const but C++ is trash
+  World *world;
 };
 
 #endif

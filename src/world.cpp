@@ -8,14 +8,10 @@ bool Vector2iComparator::operator()(const sf::Vector2i a,
   return std::tie(a.x, a.y) < std::tie(b.x, b.y);
 }
 
-sf::Vector2i grid_pos(sf::Vector2f pos) {
-  return {(int)round(pos.x / TILE_SIZE), (int)round(pos.y / TILE_SIZE)};
-}
-
-World::World(const sf::Vector2f *player_pos)
-    : player_pos(player_pos), player_grid_pos(grid_pos(*player_pos)) {
-  tiles[player_grid_pos] = Tile(TileKind::Floor, player_grid_pos, 0);
-  queue.push_back(player_grid_pos);
+World::World(const sf::Vector2i *player_grid_pos)
+    : player_grid_pos(player_grid_pos), old_player_grid_pos(*player_grid_pos) {
+  tiles[*player_grid_pos] = Tile(TileKind::Floor, *player_grid_pos, 0);
+  queue.push_back(*player_grid_pos);
   regenerate_tiles();
 }
 
@@ -48,7 +44,7 @@ Tile World::new_tile(sf::Vector2i pos) {
   TileKind kind = TileKind::Floor;
   if (number <= WALL_PROB_BORDER)
     kind = TileKind::Wall;
-  return Tile(kind, pos, distance2i(player_grid_pos, pos));
+  return Tile(kind, pos, distance2i(*player_grid_pos, pos));
 }
 
 // Purest, first-class cosmic horror, for the sake of your young and innocent
@@ -57,7 +53,7 @@ Tile World::new_tile(sf::Vector2i pos) {
 void World::regenerate_tiles() {
   std::vector<sf::Vector2i> new_queue;
   for (auto &[pos, tile] : tiles) {
-    auto dist = distance2i(player_grid_pos, pos);
+    auto dist = distance2i(*player_grid_pos, pos);
     if (dist > DARK_DIST)
       new_queue.push_back(pos); // diabolically reusing vectors
     else
@@ -86,7 +82,7 @@ void World::regenerate_tiles() {
       auto neighbour = pos + dir;
       if (tiles.contains(neighbour))
         continue;
-      if (distance2i(player_grid_pos, neighbour) > DARK_DIST) {
+      if (distance2i(*player_grid_pos, neighbour) > DARK_DIST) {
         if (!in_new_queue) {
           // tile is on border, adding to stash
           in_new_queue = true;
@@ -109,9 +105,10 @@ void World::draw(sf::RenderWindow &window, const sf::Vector2f origin) {
 }
 
 void World::update() {
-  auto new_player_grid_pos = grid_pos(*player_pos);
-  if (new_player_grid_pos != player_grid_pos) {
-    player_grid_pos = new_player_grid_pos;
+  if (*player_grid_pos != old_player_grid_pos)
     regenerate_tiles();
-  }
+  old_player_grid_pos = *player_grid_pos;
 }
+
+// Tile should be present on this pos
+auto World::get_tile(const sf::Vector2i pos) -> Tile const& { return tiles[pos]; }
