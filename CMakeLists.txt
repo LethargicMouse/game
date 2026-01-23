@@ -10,7 +10,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Looking for SFML
-find_package(SFML 2.6 COMPONENTS graphics window system REQUIRED)
+find_package(SFML 3 REQUIRED COMPONENTS Graphics Window System)
 
 # Source files
 set(SOURCES
@@ -39,15 +39,6 @@ target_link_libraries(game
         SFML::Window
         SFML::System
 )
-
-# Windows Settings
-if(WIN32)
-    # Adding a flag to disable the console
-    set_target_properties(game PROPERTIES
-        WIN32_EXECUTABLE TRUE
-        LINK_FLAGS "/SUBSYSTEM:WINDOWS"
-    )
-endif()
 
 # Copying the SFML DLL to Windows (if necessary)
 if(WIN32 AND NOT SFML_STATIC)
