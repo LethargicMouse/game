@@ -1,14 +1,23 @@
 #include "game.h"
 #include <SFML/Window/Keyboard.hpp>
 
+bool Vector2iComparator::operator()(const sf::Vector2i a,
+                                    const sf::Vector2i b) const {
+  return std::tie(a.x, a.y) < std::tie(b.x, b.y);
+}
+
 inline constexpr sf::Vector2u SCREEN_SIZE = {1920, 1080};
 inline constexpr float PLAYER_RADIUS = TILE_SIZE * 0.3;
 
 Game::Game()
     : window(sf::VideoMode(SCREEN_SIZE), GAME_TITLE, sf::Style::None,
              sf::State::Fullscreen),
-      player_shape(PLAYER_RADIUS), world(&player_grid_pos) {
+      player_shape(PLAYER_RADIUS) {
   player_shape.setFillColor(sf::Color::Blue);
+
+  tiles[player_grid_pos] = Tile(TileKind::Floor, player_grid_pos, 0);
+  tile_queue.push_back(player_grid_pos);
+  regenerate_tiles();
 }
 
 void Game::main_loop() {
@@ -27,7 +36,7 @@ void Game::update() {
   update_player(dt);
   // world is better to update after player cuz it recalculates based on
   // player's new pos
-  world.update();
+  update_world();
 }
 
 void Game::handle_events() {
@@ -56,7 +65,7 @@ void Game::quit() { window.close(); }
 
 void Game::draw() {
   window.clear();
-  world.draw(window, player_pos);
+  draw_world(player_pos);
   draw_player();
   window.display();
 }
@@ -90,14 +99,90 @@ void Game::update_player(sf::Time dt) {
     return;
 
   float player_speed = PLAYER_SPEED; // in pixels/sec
-  if (world.get_tile(pos_on_grid(player_pos)).is_water()) {
+  if (tiles[pos_on_grid(player_pos)].is_water()) {
     player_speed = PLAYER_WATER_SPEED;
   }
   auto new_pos = player_pos + v.normalized() * player_speed * dt.asSeconds();
   auto new_grid_pos = pos_on_grid(new_pos);
-  if (new_grid_pos == player_grid_pos ||
-      !world.get_tile(new_grid_pos).is_wall()) {
+  if (new_grid_pos == player_grid_pos || !tiles[new_grid_pos].is_wall()) {
     player_pos = new_pos;
     player_grid_pos = new_grid_pos;
   }
+}
+
+void Game::draw_world(const sf::Vector2f origin) {
+  for (auto &[_, tile] : tiles)
+    tile.draw(window, origin);
+}
+
+// squared distance between Vector2i's
+unsigned int distance2i(const sf::Vector2i a, const sf::Vector2i b) {
+  return (a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y);
+}
+
+Tile Game::new_tile(sf::Vector2i pos) {
+  // get random number in given distribution
+  // C++ is fucking garbage of a language
+  TileKind kind = random_kind();
+  return Tile(kind, pos, distance2i(player_grid_pos, pos));
+}
+
+const std::array<sf::Vector2i, 4> DIRS({{0, 1}, {1, 0}, {-1, 0}, {0, -1}});
+
+// Purest, first-class cosmic horror, for the sake of your young and innocent
+// brain dont even try to understand what the freaking hell is happening here,
+// for God left this place long ago
+void Game::regenerate_tiles() {
+  std::vector<sf::Vector2i> new_queue;
+  for (auto &[pos, tile] : tiles) {
+    auto dist = distance2i(player_grid_pos, pos);
+    if (dist > DARK_DIST)
+      new_queue.push_back(pos); // diabolically reusing vectors
+    else
+      tile.set_dist(dist);
+  }
+  for (auto pos : new_queue) {
+    tiles.erase(pos);
+    for (auto dir : DIRS) {
+      auto neigh = pos + dir;
+      if (tiles.contains(neigh))
+        tile_queue.push_back(neigh); // they are now on border
+    }
+  }
+  new_queue.clear();
+
+  while (!tile_queue.empty()) {
+    auto pos = tile_queue.front();
+    tile_queue.pop_front();
+    if (!tiles.contains(pos))
+      continue; // a friendly ghost visited this haunted code, just skip it
+    // not generating past walls and such cuz they're not transparent
+    if (tiles[pos].is_wall())
+      continue;
+    bool in_new_queue = false;
+    for (auto dir : DIRS) {
+      auto neighbour = pos + dir;
+      if (tiles.contains(neighbour))
+        continue;
+      if (distance2i(player_grid_pos, neighbour) > DARK_DIST) {
+        if (!in_new_queue) {
+          // tile is on border, adding to stash
+          in_new_queue = true;
+          new_queue.push_back(pos);
+        }
+        continue;
+      }
+      tiles[neighbour] = new_tile(neighbour);
+      tile_queue.push_back(neighbour);
+    }
+  }
+  // stash border tiles to regenerate starting from them next time
+  for (auto &pos : new_queue)
+    tile_queue.push_back(pos);
+}
+
+void Game::update_world() {
+  if (player_grid_pos != old_player_grid_pos)
+    regenerate_tiles();
+  old_player_grid_pos = player_grid_pos;
 }

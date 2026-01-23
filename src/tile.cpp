@@ -1,4 +1,5 @@
 #include "tile.h"
+#include <random>
 
 inline constexpr float TILE_SIZE_H = TILE_SIZE * 0.5;
 inline constexpr sf::Color FLOOR_COLOR = sf::Color(0x88'88'88'ff);
@@ -64,4 +65,35 @@ bool Tile::is_water() const {
 void Tile::set_dist(unsigned int dist) {
   color.a = alpha_from_dist(dist);
   shape.setFillColor(color);
+}
+
+// behold, the SINGLETON! (mini version)
+std::mt19937 &get_rng() {
+  // don't wanna know who invented this {}() bullshit
+  // mt19937 is a smart-ass pseudo random number generator
+  static std::mt19937 rng(std::random_device{}());
+  return rng;
+}
+
+template <typename T> T real_random_between(T min, T max) {
+  std::uniform_real_distribution<T> dist(min, max);
+  return dist(get_rng());
+}
+
+// dont forget to update `NOT_FLOOR_PROB` if you add new tile kind
+inline constexpr float WATER_PROB = 0.1;
+inline constexpr float WALL_PROB = 0.4;
+inline constexpr float FLOOR_PROB = 0.5;
+inline constexpr float NOT_FLOOR_PROB = 1.f - WATER_PROB - WALL_PROB;
+
+TileKind random_kind() {
+  assert(FLOOR_PROB == 1 - NOT_FLOOR_PROB);
+  float number = real_random_between(0.f, 1.f);
+  // doing a bit of clever math here   (no)
+  if (number <= WATER_PROB)
+    return TileKind::Water;
+  number -= WATER_PROB;
+  if (number <= WALL_PROB)
+    return TileKind::Wall;
+  return TileKind::Floor;
 }

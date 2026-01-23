@@ -31,4 +31,6 @@ private:
   sf::Vector2f pos;
 };
 
+TileKind random_kind();
+
 #endif

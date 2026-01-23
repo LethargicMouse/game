@@ -1,7 +1,15 @@
 #ifndef GAME_H
 #define GAME_H
 
-#include "world.h"
+#include "tile.h"
+#include <deque>
+#include <map>
+
+// required to use `std::map<sf::Vector2i, _>`
+struct Vector2iComparator {
+public:
+  bool operator()(const sf::Vector2i a, const sf::Vector2i b) const;
+};
 
 const std::string GAME_TITLE = "the game";
 
@@ -28,13 +36,26 @@ private:
 
   void draw_player();
 
-  void update_player(sf::Time dt);
+  void update_player(const sf::Time dt);
+
+  void draw_world(const sf::Vector2f origin);
+
+  void regenerate_tiles();
+
+  Tile new_tile(sf::Vector2i pos);
+
+  void update_world();
 
   sf::RenderWindow window;
+
   sf::CircleShape player_shape;
   sf::Vector2f player_pos;
   sf::Vector2i player_grid_pos;
-  World world;
+  sf::Vector2i old_player_grid_pos;
+
+  std::map<sf::Vector2i, Tile, Vector2iComparator> tiles;
+  std::deque<sf::Vector2i> tile_queue;
+
   sf::Clock clock;
 };
 
