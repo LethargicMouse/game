@@ -2,7 +2,9 @@
 _TODO: write a description of a game_
 
 ## Controls:
-- `CapsLock` or `Q` to quit the game
+- `CapsLock` or `Escape` or `Q` to quit the game
+- `WASD` to move around
+- Please do not go through walls! Collision is in progress
 
 ## Developer's guide:
 Here are the instructions for game developers
@@ -16,4 +18,4 @@ Find me, I will cry but will setup everything on your pc
 ### Make commands
 - `$ make` will compile the game and output `game` executable in `build` folder
 - `$ make run` will run the game
-- `$ make clean` will remove everything from `build` directory
+- `$ make clean` will remove everything from `build` folder
