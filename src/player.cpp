@@ -3,10 +3,12 @@
 #include <SFML/System/Vector2.hpp>
 
 inline constexpr float PLAYER_RADIUS = TILE_SIZE * 0.3;
-//inline constexpr 
-float PLAYER_SPEED = 200; // in pixels/sec
+inline constexpr float PLAYER_SPEED = 200;
+inline constexpr float PLAYER_WATER_SPEED = 100;
 
-Player::Player(World *world) : shape(PLAYER_RADIUS), world(world) { shape.setFillColor(sf::Color::Blue); }
+Player::Player(World *world) : shape(PLAYER_RADIUS), world(world) {
+  shape.setFillColor(sf::Color::Blue);
+}
 
 void Player::draw(sf::RenderWindow &window) {
   auto center = window.getSize() / 2u;
@@ -17,7 +19,7 @@ void Player::draw(sf::RenderWindow &window) {
 }
 
 sf::Vector2i pos_on_grid(sf::Vector2f pos) {
-    return { (int)round(pos.x / TILE_SIZE), (int)round(pos.y / TILE_SIZE) };
+  return {(int)round(pos.x / TILE_SIZE), (int)round(pos.y / TILE_SIZE)};
 }
 
 void Player::update(sf::Time dt) {
@@ -33,14 +35,15 @@ void Player::update(sf::Time dt) {
   if (v == sf::Vector2f())
     return;
 
-  if (world->get_tile(pos_on_grid(pos)).is_water()) {PLAYER_SPEED = 100;}
-  else { PLAYER_SPEED = 200; }
-
-  auto new_pos = pos + v.normalized() * PLAYER_SPEED * dt.asSeconds();
+  float player_speed = PLAYER_SPEED; // in pixels/sec
+  if (world->get_tile(pos_on_grid(pos)).is_water()) {
+    player_speed = PLAYER_WATER_SPEED;
+  }
+  auto new_pos = pos + v.normalized() * player_speed * dt.asSeconds();
   auto new_grid_pos = pos_on_grid(new_pos);
   if (new_grid_pos == grid_pos || !world->get_tile(new_grid_pos).is_wall()) {
-      pos = new_pos;
-      grid_pos = new_grid_pos;
+    pos = new_pos;
+    grid_pos = new_grid_pos;
   }
 }
 
