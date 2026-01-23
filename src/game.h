@@ -1,7 +1,7 @@
 #ifndef GAME_H
 #define GAME_H
 
-#include "player.h"
+#include "world.h"
 
 const std::string GAME_TITLE = "the game";
 
@@ -26,8 +26,14 @@ private:
 
   void draw();
 
+  void draw_player();
+
+  void update_player(sf::Time dt);
+
   sf::RenderWindow window;
-  Player player;
+  sf::CircleShape player_shape;
+  sf::Vector2f player_pos;
+  sf::Vector2i player_grid_pos;
   World world;
   sf::Clock clock;
 };
