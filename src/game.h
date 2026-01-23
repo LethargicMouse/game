@@ -8,7 +8,7 @@
 // required to use `std::map<sf::Vector2i, _>`
 struct Vector2iComparator {
 public:
-  bool operator()(const sf::Vector2i a, const sf::Vector2i b) const;
+  bool operator()(sf::Vector2i left, sf::Vector2i right) const;
 };
 
 const std::string GAME_TITLE = "the game";
@@ -36,15 +36,19 @@ private:
 
   void draw_player();
 
-  void update_player(const sf::Time dt);
+  void update_player(sf::Time delta_time);
 
-  void draw_world(const sf::Vector2f origin);
+  void draw_world(sf::Vector2f origin);
 
   void regenerate_tiles();
 
   Tile new_tile(sf::Vector2i pos);
 
   void update_world();
+
+  void move_player(sf::Vector2f vector);
+
+  void erase_black_tiles();
 
   sf::RenderWindow window;
 
