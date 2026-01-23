@@ -18,6 +18,8 @@ public:
 
   void draw(sf::RenderWindow &window, sf::Vector2f origin);
 
+  void make_black();
+
   bool is_wall() const;
   bool is_water() const;
   bool is_black() const;

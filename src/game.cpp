@@ -16,7 +16,6 @@ Game::Game()
   player_shape.setFillColor(sf::Color::Blue);
 
   tiles[player_grid_pos] = Tile(TileKind::Floor, player_grid_pos, 0);
-  tile_queue.push_back(player_grid_pos);
   regenerate_tiles();
 }
 
@@ -70,7 +69,7 @@ void Game::draw() {
   window.display();
 }
 
-inline constexpr float PLAYER_SPEED = 200;
+inline constexpr float PLAYER_SPEED = 200; // in pixels/sec
 inline constexpr float PLAYER_WATER_SPEED = 100;
 
 void Game::draw_player() {
@@ -111,12 +110,13 @@ void Game::update_player(sf::Time delta_time) {
   if (velocity == sf::Vector2f())
     return;
 
-  float player_speed = PLAYER_SPEED; // in pixels/sec
-  if (tiles[pos_on_grid(player_pos)].is_water()) {
+  float player_speed = PLAYER_SPEED;
+  if (tiles[pos_on_grid(player_pos)].is_water())
     player_speed = PLAYER_WATER_SPEED;
-  }
   auto v_final = velocity.normalized() * player_speed * delta_time.asSeconds();
-  move_player(v_final);
+  // applying separately x & y so that the player can glide over walls
+  move_player({v_final.x, 0});
+  move_player({0, v_final.y});
 }
 
 void Game::draw_world(const sf::Vector2f origin) {
@@ -130,14 +130,14 @@ unsigned int distance2i(const sf::Vector2i pos_1, const sf::Vector2i pos_2) {
   return ((pos_1.x - pos_2.x) * (pos_1.x - pos_2.x)) +
          ((pos_1.y - pos_2.y) * (pos_1.y - pos_2.y));
 }
-} // namespace
 
-Tile Game::new_tile(sf::Vector2i pos) {
+Tile new_tile(sf::Vector2i pos, unsigned int dist) {
   // get random number in given distribution
   // C++ is fucking garbage of a language
   TileKind kind = random_kind();
-  return Tile(kind, pos, distance2i(player_grid_pos, pos));
+  return Tile(kind, pos, dist);
 }
+} // namespace
 
 const std::array<sf::Vector2i, 4> DIRS({{0, 1}, {1, 0}, {-1, 0}, {0, -1}});
 
@@ -148,53 +148,41 @@ void Game::erase_black_tiles() {
     if (tile.is_black())
       black_poses.push_back(pos); // diabolically reusing vectors
   }
-  for (auto pos : black_poses) {
+  for (auto pos : black_poses)
     tiles.erase(pos);
-    for (auto dir : DIRS) {
-      auto neigh = pos + dir;
-      if (tiles.contains(neigh))
-        tile_queue.push_back(neigh); // they are now on border
-    }
-  }
-  black_poses.clear();
 }
 
 // Purest, first-class cosmic horror, for the sake of your young and innocent
 // brain dont even try to understand what the freaking hell is happening here,
 // for God left this place long ago
 void Game::regenerate_tiles() {
-  erase_black_tiles();
-
-  std::vector<sf::Vector2i> new_queue;
-
-  while (!tile_queue.empty()) {
-    auto pos = tile_queue.front();
-    tile_queue.pop_front();
-    if (!tiles.contains(pos))
-      continue; // a friendly ghost visited this haunted code, just skip it
+  for (auto &[pos, tile] : tiles)
+    tile.make_black();
+  std::deque<sf::Vector2i> queue;
+  queue.push_back(player_grid_pos);
+  tiles[player_grid_pos].set_dist(0);
+  while (!queue.empty()) {
+    auto pos = queue.front();
+    queue.pop_front();
+    assert(tiles.contains(pos)); // luckily we are free from ghosts by now
     // not generating past walls and such cuz they're not transparent
     if (tiles[pos].is_wall())
       continue;
-    bool in_new_queue = false;
     for (auto dir : DIRS) {
       auto neighbour = pos + dir;
-      if (tiles.contains(neighbour))
+      auto dist = distance2i(player_grid_pos, neighbour);
+      if (dist > DARK_DIST)
         continue;
-      if (distance2i(player_grid_pos, neighbour) > DARK_DIST) {
-        if (!in_new_queue) {
-          // tile is on border, adding to stash
-          in_new_queue = true;
-          new_queue.push_back(pos);
-        }
+      if (!tiles.contains(neighbour))
+        tiles[neighbour] = new_tile(neighbour, dist);
+      else if (tiles[neighbour].is_black())
+        tiles[neighbour].set_dist(dist);
+      else
         continue;
-      }
-      tiles[neighbour] = new_tile(neighbour);
-      tile_queue.push_back(neighbour);
+      queue.push_back(neighbour);
     }
   }
-  // stash border tiles to regenerate starting from them next time
-  for (auto &pos : new_queue)
-    tile_queue.push_back(pos);
+  erase_black_tiles();
 }
 
 void Game::update_world() {

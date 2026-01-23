@@ -42,8 +42,6 @@ private:
 
   void regenerate_tiles();
 
-  Tile new_tile(sf::Vector2i pos);
-
   void update_world();
 
   void move_player(sf::Vector2f vector);
@@ -58,7 +56,8 @@ private:
   sf::Vector2i old_player_grid_pos;
 
   std::map<sf::Vector2i, Tile, Vector2iComparator> tiles;
-  std::deque<sf::Vector2i> tile_queue;
+
+  sf::Vector2i light_source;
 
   sf::Clock clock;
 };

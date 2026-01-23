@@ -107,3 +107,5 @@ TileKind random_kind() {
 }
 
 bool Tile::is_black() const { return color.a == 0; }
+
+void Tile::make_black() { color.a = 0; }
