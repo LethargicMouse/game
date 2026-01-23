@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.20)
 project(GameProject VERSION 1.0.0 LANGUAGES CXX)
 
+# Useing vcpkg
+set(CMAKE_TOOLCHAIN_FILE "C:/Users/Huawei/source/repos/vcpkg/scripts/buildsystems/vcpkg.cmake")
+
 # Compiler Settings
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
