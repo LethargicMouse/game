@@ -47,26 +47,18 @@ bool Tile::is_wall() const {
   switch (kind) {
   case TileKind::Wall:
     return true;
-  case TileKind::Floor:
-    return false;
-  case TileKind::Water:
+  default:
     return false;
   }
-  // unreachable but compiler doesn't fucking care
-  return false;
 }
 
 bool Tile::is_water() const {
   switch (kind) {
-  case TileKind::Wall:
-    return false;
-  case TileKind::Floor:
-    return false;
   case TileKind::Water:
     return true;
+  default:
+    return false;
   }
-  // mi mi mi :3
-  return false;
 }
 
 void Tile::set_dist(unsigned int dist) {
