@@ -8,6 +8,9 @@ inline constexpr sf::Color WATER_COLOR = sf::Color(0x99'dd'dd'ff);
 
 Tile::Tile() : kind(TileKind::Wall) {}
 
+// helpers are conventionally defined in anonymous namespace so that they are
+// accessible only in this .cpp file
+namespace {
 sf::Color kind_color(TileKind kind) {
   switch (kind) {
   case TileKind::Floor:
@@ -20,14 +23,17 @@ sf::Color kind_color(TileKind kind) {
   // i hate this language
   return sf::Color::Black;
 }
+} // namespace
 
 inline constexpr std::uint8_t MAX_ALPHA = 255;
 
+namespace {
 std::uint8_t alpha_from_dist(unsigned int dist) {
-  float frac = 1.f - (float)dist / (float)DARK_DIST;
-  frac = std::max(frac, 0.f);
+  float frac = 1.F - ((float)dist / (float)DARK_DIST);
+  frac = std::max(frac, 0.F);
   return (std::uint8_t)(MAX_ALPHA * frac);
 }
+} // namespace
 
 Tile::Tile(TileKind kind, sf::Vector2i grid_pos, unsigned int dist)
     : shape({TILE_SIZE, TILE_SIZE}), kind(kind), color(kind_color(kind)),
@@ -37,7 +43,7 @@ Tile::Tile(TileKind kind, sf::Vector2i grid_pos, unsigned int dist)
 }
 
 void Tile::draw(sf::RenderWindow &window, sf::Vector2f origin) {
-  auto center = window.getSize() / 2u;
+  auto center = window.getSize() / 2U;
   sf::Vector2f shift((float)center.x - TILE_SIZE_H,
                      (float)center.y - TILE_SIZE_H);
   shape.setPosition(shift + pos - origin);
@@ -67,6 +73,7 @@ void Tile::set_dist(unsigned int dist) {
   shape.setFillColor(color);
 }
 
+namespace {
 // behold, the SINGLETON! (mini version)
 std::mt19937 &get_rng() {
   // don't wanna know who invented this {}() bullshit
@@ -79,16 +86,17 @@ template <typename T> T real_random_between(T min, T max) {
   std::uniform_real_distribution<T> dist(min, max);
   return dist(get_rng());
 }
+} // namespace
 
 // dont forget to update `NOT_FLOOR_PROB` if you add new tile kind
 inline constexpr float WATER_PROB = 0.1;
 inline constexpr float WALL_PROB = 0.4;
 inline constexpr float FLOOR_PROB = 0.5;
-inline constexpr float NOT_FLOOR_PROB = 1.f - WATER_PROB - WALL_PROB;
+inline constexpr float NOT_FLOOR_PROB = 1.F - WATER_PROB - WALL_PROB;
 
 TileKind random_kind() {
-  assert(FLOOR_PROB == 1 - NOT_FLOOR_PROB);
-  float number = real_random_between(0.f, 1.f);
+  static_assert(FLOOR_PROB == 1 - NOT_FLOOR_PROB);
+  float number = real_random_between(0.F, 1.F);
   // doing a bit of clever math here   (no)
   if (number <= WATER_PROB)
     return TileKind::Water;
@@ -97,3 +105,5 @@ TileKind random_kind() {
     return TileKind::Wall;
   return TileKind::Floor;
 }
+
+bool Tile::is_black() const { return color.a == 0; }

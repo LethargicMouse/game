@@ -144,11 +144,9 @@ const std::array<sf::Vector2i, 4> DIRS({{0, 1}, {1, 0}, {-1, 0}, {0, -1}});
 void Game::erase_black_tiles() {
   std::vector<sf::Vector2i> black_poses;
   for (auto &[pos, tile] : tiles) {
-    auto dist = distance2i(player_grid_pos, pos);
-    if (dist > DARK_DIST)
+    tile.set_dist(distance2i(player_grid_pos, pos));
+    if (tile.is_black())
       black_poses.push_back(pos); // diabolically reusing vectors
-    else
-      tile.set_dist(dist);
   }
   for (auto pos : black_poses) {
     tiles.erase(pos);

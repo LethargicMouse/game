@@ -20,6 +20,7 @@ public:
 
   bool is_wall() const;
   bool is_water() const;
+  bool is_black() const;
 
   // update based on new squared distance to the player
   void set_dist(unsigned int dist);
