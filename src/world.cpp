@@ -35,18 +35,28 @@ unsigned int distance2i(const sf::Vector2i a, const sf::Vector2i b) {
   return (a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y);
 }
 
-inline constexpr float WATER_PROB_BORDER = 0.1;
-inline constexpr float WALL_PROB_BORDER = 0.4;
+// dont forget to update `NOT_FLOOR_PROB` if you add new tile kind
+inline constexpr float WATER_PROB = 0.1;
+inline constexpr float WALL_PROB = 0.4;
+inline constexpr float FLOOR_PROB = 0.5;
+inline constexpr float NOT_FLOOR_PROB = 1.f - WATER_PROB - WALL_PROB;
+
+TileKind random_kind() {
+  assert(FLOOR_PROB == 1 - NOT_FLOOR_PROB);
+  float number = real_random_between(0.f, 1.f);
+  // doing a bit of clever math here   (no)
+  if (number <= WATER_PROB)
+    return TileKind::Water;
+  number -= WATER_PROB;
+  if (number <= WALL_PROB)
+    return TileKind::Wall;
+  return TileKind::Floor;
+}
 
 Tile World::new_tile(sf::Vector2i pos) {
   // get random number in given distribution
   // C++ is fucking garbage of a language
-  float number = real_random_between(0.f, 1.f);
-  TileKind kind = TileKind::Floor;
-  if (number <= WATER_PROB_BORDER) 
-    kind = TileKind::Water;
-  else {if (number <= WALL_PROB_BORDER)
-    kind = TileKind::Wall;}
+  TileKind kind = random_kind();
   return Tile(kind, pos, distance2i(*player_grid_pos, pos));
 }
 
@@ -114,4 +124,6 @@ void World::update() {
 }
 
 // Tile should be present on this pos
-auto World::get_tile(const sf::Vector2i pos) -> Tile const& { return tiles[pos]; }
+auto World::get_tile(const sf::Vector2i pos) -> Tile const & {
+  return tiles[pos];
+}
