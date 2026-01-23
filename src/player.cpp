@@ -3,7 +3,8 @@
 #include <SFML/System/Vector2.hpp>
 
 inline constexpr float PLAYER_RADIUS = TILE_SIZE * 0.3;
-inline constexpr float PLAYER_SPEED = 200; // in pixels/sec
+//inline constexpr 
+float PLAYER_SPEED = 200; // in pixels/sec
 
 Player::Player(World *world) : shape(PLAYER_RADIUS), world(world) { shape.setFillColor(sf::Color::Blue); }
 
@@ -31,6 +32,10 @@ void Player::update(sf::Time dt) {
     v.x += 1.f;
   if (v == sf::Vector2f())
     return;
+
+  if (world->get_tile(pos_on_grid(pos)).is_water()) {PLAYER_SPEED = 100;}
+  else { PLAYER_SPEED = 200; }
+
   auto new_pos = pos + v.normalized() * PLAYER_SPEED * dt.asSeconds();
   auto new_grid_pos = pos_on_grid(new_pos);
   if (new_grid_pos == grid_pos || !world->get_tile(new_grid_pos).is_wall()) {

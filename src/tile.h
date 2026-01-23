@@ -9,7 +9,7 @@ inline constexpr float TILE_SIZE = 50;
 inline constexpr unsigned int DARK_DIST = 20;
 const float DARK_DIST_SQRT = std::sqrt((float)DARK_DIST);
 
-enum class TileKind { Wall, Floor };
+enum class TileKind { Wall, Floor, Water };
 
 class Tile {
 public:
@@ -19,6 +19,7 @@ public:
   void draw(sf::RenderWindow &window, sf::Vector2f origin);
 
   bool is_wall() const;
+  bool is_water() const;
 
   // update based on new squared distance to the player
   void set_dist(unsigned int dist);

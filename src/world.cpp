@@ -35,6 +35,7 @@ unsigned int distance2i(const sf::Vector2i a, const sf::Vector2i b) {
   return (a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y);
 }
 
+inline constexpr float WATER_PROB_BORDER = 0.1;
 inline constexpr float WALL_PROB_BORDER = 0.4;
 
 Tile World::new_tile(sf::Vector2i pos) {
@@ -42,8 +43,10 @@ Tile World::new_tile(sf::Vector2i pos) {
   // C++ is fucking garbage of a language
   float number = real_random_between(0.f, 1.f);
   TileKind kind = TileKind::Floor;
-  if (number <= WALL_PROB_BORDER)
-    kind = TileKind::Wall;
+  if (number <= WATER_PROB_BORDER) 
+    kind = TileKind::Water;
+  else {if (number <= WALL_PROB_BORDER)
+    kind = TileKind::Wall;}
   return Tile(kind, pos, distance2i(*player_grid_pos, pos));
 }
 

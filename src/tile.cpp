@@ -3,6 +3,7 @@
 inline constexpr float TILE_SIZE_H = TILE_SIZE * 0.5;
 inline constexpr sf::Color FLOOR_COLOR = sf::Color(0x88'88'88'ff);
 inline constexpr sf::Color WALL_COLOR = sf::Color(0x22'22'22'ff);
+inline constexpr sf::Color WATER_COLOR = sf::Color(0x99'dd'dd'ff);
 
 Tile::Tile() : kind(TileKind::Wall) {}
 
@@ -12,6 +13,8 @@ sf::Color kind_color(TileKind kind) {
     return FLOOR_COLOR;
   case TileKind::Wall:
     return WALL_COLOR;
+  case TileKind::Water:
+    return WATER_COLOR;
   }
   // i hate this language
   return sf::Color::Black;
@@ -46,9 +49,24 @@ bool Tile::is_wall() const {
     return true;
   case TileKind::Floor:
     return false;
+  case TileKind::Water:
+    return false;
   }
   // unreachable but compiler doesn't fucking care
   return false;
+}
+
+bool Tile::is_water() const {
+    switch (kind) {
+    case TileKind::Wall:
+        return false;
+    case TileKind::Floor:
+        return false;
+    case TileKind::Water:
+        return true;
+    }
+    // mi mi mi :3
+    return false;
 }
 
 void Tile::set_dist(unsigned int dist) {
