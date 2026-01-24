@@ -7,6 +7,7 @@
 ## Controls:
 - `CapsLock` or `Escape` or `Q` to quit the game
 - `WASD` to move around
+- `Space` to place torch
 
 ## Developer's guide:
 Here are the instructions for game developers

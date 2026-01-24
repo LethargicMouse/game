@@ -55,10 +55,13 @@ void Game::handle_key_pressed(const sf::Event::KeyPressed *key_pressed) {
   assert(key_pressed != nullptr);
   if (key_pressed->scancode == sf::Keyboard::Scancode::CapsLock ||
       key_pressed->scancode == sf::Keyboard::Scancode::Escape ||
-      key_pressed->scancode == sf::Keyboard::Scancode::Q) {
+      key_pressed->scancode == sf::Keyboard::Scancode::Q)
     quit();
-  }
+  if (key_pressed->scancode == sf::Keyboard::Scancode::Space)
+    place_torch();
 }
+
+void Game::place_torch() { light_sources.push_back(player_grid_pos); }
 
 void Game::quit() { window.close(); }
 
@@ -152,8 +155,10 @@ void Game::erase_black_tiles() {
 }
 
 unsigned int Game::get_distance(const sf::Vector2i pos) {
-  return std::min(distance2i(player_grid_pos, pos),
-                  distance2i(light_source, pos));
+  auto res = distance2i(player_grid_pos, pos);
+  for (auto light_source : light_sources)
+    res = std::min(res, distance2i(light_source, pos));
+  return res;
 }
 
 // Purest, first-class cosmic horror, for the sake of your young and innocent
@@ -165,10 +170,12 @@ void Game::regenerate_tiles() {
   std::deque<sf::Vector2i> queue;
   queue.push_back(player_grid_pos);
   tiles[player_grid_pos].set_dist(0);
-  assert(tiles.contains(light_source));
-  queue.push_back(light_source);
-  tiles[light_source].set_dist(0);
-  assert(!tiles[light_source].is_wall());
+  for (auto light_source : light_sources) {
+    assert(tiles.contains(light_source));
+    queue.push_back(light_source);
+    tiles[light_source].set_dist(0);
+    assert(!tiles[light_source].is_wall());
+  }
   while (!queue.empty()) {
     auto pos = queue.front();
     queue.pop_front();

@@ -39,6 +39,8 @@ private:
   void handle_event(std::optional<sf::Event>);
   void handle_key_pressed(const sf::Event::KeyPressed *key_pressed);
 
+  void place_torch();
+
   void draw();
   void draw_player();
   void draw_world(sf::Vector2f origin);
@@ -52,7 +54,7 @@ private:
 
   std::map<sf::Vector2i, Tile, Vector2iComparator> tiles;
 
-  sf::Vector2i light_source;
+  std::vector<sf::Vector2i> light_sources;
 
   sf::Clock clock;
 };
