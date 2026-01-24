@@ -5,6 +5,7 @@
 #include <SFML/System/Vector2.hpp>
 #include <deque>
 #include <map>
+#include <set>
 
 // required to use `std::map<sf::Vector2i, _>`
 struct Vector2iComparator {
@@ -31,9 +32,7 @@ private:
 
   void update_world();
   void regenerate_tiles();
-  void erase_black_tiles();
-
-  unsigned int get_distance(sf::Vector2i pos);
+  void update_light(sf::Vector2i pos);
 
   void handle_events();
   void handle_event(std::optional<sf::Event>);
@@ -53,8 +52,9 @@ private:
   sf::Vector2i old_player_grid_pos;
 
   std::map<sf::Vector2i, Tile, Vector2iComparator> tiles;
+  std::deque<sf::Vector2i> tile_queue;
 
-  std::vector<sf::Vector2i> light_sources;
+  std::multiset<sf::Vector2i, Vector2iComparator> light_sources;
 
   sf::Clock clock;
 };

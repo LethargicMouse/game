@@ -3,5 +3,5 @@ CompileFlags:
 Diagnostics:
   ClangTidy:
     Add: [bugprone-*, cppcoreguidelines-*, clang-analyzer-*, readability-*, misc-*]
-    Remove: readability-braces-around-statements
+    Remove: [readability-braces-around-statements, cppcoreguidelines-pro-bounds-constant-array-index]
 

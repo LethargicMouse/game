@@ -1,6 +1,7 @@
 #include "game.h"
 #include <SFML/System/Vector2.hpp>
 #include <SFML/Window/Keyboard.hpp>
+#include <iostream>
 
 bool Vector2iComparator::operator()(const sf::Vector2i left,
                                     const sf::Vector2i right) const {
@@ -16,6 +17,8 @@ Game::Game()
       player_shape(PLAYER_RADIUS) {
   player_shape.setFillColor(sf::Color::Blue);
   tiles[player_grid_pos] = Tile(TileKind::Floor, player_grid_pos, 0);
+  light_sources.insert(player_grid_pos);
+  tile_queue.push_back(player_grid_pos);
   regenerate_tiles();
 }
 
@@ -61,7 +64,7 @@ void Game::handle_key_pressed(const sf::Event::KeyPressed *key_pressed) {
     place_torch();
 }
 
-void Game::place_torch() { light_sources.push_back(player_grid_pos); }
+void Game::place_torch() { light_sources.insert(player_grid_pos); }
 
 void Game::quit() { window.close(); }
 
@@ -127,82 +130,69 @@ void Game::draw_world(const sf::Vector2f origin) {
     tile.draw(window, origin);
 }
 
-namespace {
-// squared distance between Vector2i's
-unsigned int distance2i(const sf::Vector2i pos_1, const sf::Vector2i pos_2) {
-  return ((pos_1.x - pos_2.x) * (pos_1.x - pos_2.x)) +
-         ((pos_1.y - pos_2.y) * (pos_1.y - pos_2.y));
-}
+// first 4 are straight, second 4 are diagonal
+const std::array<sf::Vector2i, 8> DIRS(
+    {{0, 1}, {1, 0}, {-1, 0}, {0, -1}, {1, 1}, {1, -1}, {-1, 1}, {-1, -1}});
 
-Tile new_tile(sf::Vector2i pos, unsigned int dist) {
-  // get random number in given distribution
-  // C++ is fucking garbage of a language
-  TileKind kind = random_kind();
-  return Tile(kind, pos, dist);
-}
-} // namespace
+const float SQRT2 = std::sqrt(2.F);
+inline constexpr float TORCH_LIGHT = 5;
 
-const std::array<sf::Vector2i, 4> DIRS({{0, 1}, {1, 0}, {-1, 0}, {0, -1}});
-
-void Game::erase_black_tiles() {
-  std::vector<sf::Vector2i> black_poses;
-  for (auto &[pos, tile] : tiles) {
-    if (tile.is_black())
-      black_poses.push_back(pos); // diabolically reusing vectors
-  }
-  for (auto pos : black_poses)
-    tiles.erase(pos);
-}
-
-unsigned int Game::get_distance(const sf::Vector2i pos) {
-  auto res = distance2i(player_grid_pos, pos);
-  for (auto light_source : light_sources)
-    res = std::min(res, distance2i(light_source, pos));
-  return res;
-}
-
-// Purest, first-class cosmic horror, for the sake of your young and innocent
-// brain dont even try to understand what the freaking hell is happening here,
-// for God left this place long ago
-void Game::regenerate_tiles() {
-  for (auto &[pos, tile] : tiles)
-    tile.make_black();
-  std::deque<sf::Vector2i> queue;
-  queue.push_back(player_grid_pos);
-  tiles[player_grid_pos].set_dist(0);
-  for (auto light_source : light_sources) {
-    assert(tiles.contains(light_source));
-    queue.push_back(light_source);
-    tiles[light_source].set_dist(0);
-    assert(!tiles[light_source].is_wall());
-  }
-  while (!queue.empty()) {
-    auto pos = queue.front();
-    queue.pop_front();
-    assert(tiles.contains(pos)); // luckily we are free from ghosts by now
-    assert(!tiles[pos].is_black());
-    // not generating past walls and such cuz they're not transparent
-    if (tiles[pos].is_wall())
-      continue;
-    for (auto dir : DIRS) {
-      auto neighbour = pos + dir;
-      auto dist = get_distance(neighbour);
-      if (dist >= DARK_DIST)
-        continue;
-      if (!tiles.contains(neighbour))
-        tiles[neighbour] = new_tile(neighbour, dist);
-      else if (tiles[neighbour].is_black())
-        tiles[neighbour].set_dist(dist);
-      else
-        continue;
-      queue.push_back(neighbour);
+void Game::update_light(sf::Vector2i pos) {
+  float light = 0;
+  if (light_sources.contains(pos)) {
+    light = TORCH_LIGHT;
+  } else {
+    for (size_t i = 0; i < 4; ++i) {
+      auto straight_neigh = pos + DIRS[i];
+      auto diagonal_neigh = pos + DIRS[i + 4];
+      if (tiles.contains(straight_neigh) && !tiles[straight_neigh].is_wall())
+        light = std::max(light, tiles[straight_neigh].get_light() - 1);
+      if (tiles.contains(diagonal_neigh) && !tiles[diagonal_neigh].is_wall())
+        light = std::max(light, tiles[diagonal_neigh].get_light() - SQRT2);
     }
   }
-  erase_black_tiles();
+  bool is_light_new = true;
+  if (light <= 0) {
+    auto tile = tiles.find(pos);
+    if (tile == tiles.end())
+      is_light_new = false;
+    else
+      tiles.erase(tile);
+  } else if (tiles.contains(pos)) {
+    if (tiles[pos].get_light() == light)
+      is_light_new = false;
+    else {
+      tiles[pos].set_light(light);
+      if (tiles[pos].is_wall()) // light not spreading through walls
+        is_light_new = false;
+    }
+  } else
+    tiles[pos] = Tile(random_kind(), pos, light);
+  std::cerr << pos.x << ' ' << pos.y << ' ' << light << '\n';
+  if (is_light_new)
+    for (auto dir : DIRS)
+      tile_queue.push_back(pos + dir);
+}
+
+inline constexpr size_t MAX_UPDATE = 150;
+
+void Game::regenerate_tiles() {
+  for (size_t _ = 0; _ < MAX_UPDATE; ++_) {
+    if (tile_queue.empty())
+      break;
+    auto pos = tile_queue.front();
+    tile_queue.pop_front();
+    update_light(pos);
+  }
 }
 
 void Game::update_world() {
-  if (player_grid_pos != old_player_grid_pos)
-    regenerate_tiles();
-  old_player_grid_pos = player_grid_pos;
+  if (player_grid_pos != old_player_grid_pos) {
+    light_sources.erase(light_sources.find(old_player_grid_pos));
+    light_sources.insert(player_grid_pos);
+    tile_queue.push_back(player_grid_pos);
+    tile_queue.push_back(old_player_grid_pos);
+    old_player_grid_pos = player_grid_pos;
+  }
+  regenerate_tiles();
 }

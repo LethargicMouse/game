@@ -6,7 +6,7 @@ inline constexpr sf::Color FLOOR_COLOR = sf::Color(0x88'88'88'ff);
 inline constexpr sf::Color WALL_COLOR = sf::Color(0x22'22'22'ff);
 inline constexpr sf::Color WATER_COLOR = sf::Color(0x99'dd'dd'ff);
 
-Tile::Tile() : kind(TileKind::Wall) {}
+Tile::Tile() : kind(TileKind::Wall), light(0) {}
 
 // helpers are conventionally defined in anonymous namespace so that they are
 // accessible only in this .cpp file
@@ -23,22 +23,20 @@ sf::Color kind_color(TileKind kind) {
   // i hate this language
   return sf::Color::Black;
 }
-} // namespace
 
 inline constexpr std::uint8_t MAX_ALPHA = 255;
+inline constexpr float MAX_LIGHT = 10;
 
-namespace {
-std::uint8_t alpha_from_dist(unsigned int dist) {
-  float frac = 1.F - ((float)dist / (float)DARK_DIST);
-  frac = std::max(frac, 0.F);
-  return (std::uint8_t)(MAX_ALPHA * frac);
+std::uint8_t alpha_from_light(const float light) {
+  return (std::uint8_t)(MAX_ALPHA * std::min(light, MAX_LIGHT) / MAX_LIGHT);
 }
 } // namespace
 
-Tile::Tile(TileKind kind, sf::Vector2i grid_pos, unsigned int dist)
-    : shape({TILE_SIZE, TILE_SIZE}), kind(kind), color(kind_color(kind)),
+Tile::Tile(TileKind kind, sf::Vector2i grid_pos, float light)
+    : shape({TILE_SIZE, TILE_SIZE}), kind(kind), light(light),
       pos(sf::Vector2f((float)grid_pos.x, (float)grid_pos.y) * TILE_SIZE) {
-  color.a = alpha_from_dist(dist);
+  auto color = kind_color(kind);
+  color.a = alpha_from_light(light);
   shape.setFillColor(color);
 }
 
@@ -68,10 +66,14 @@ bool Tile::is_water() const {
   }
 }
 
-void Tile::set_dist(unsigned int dist) {
-  color.a = alpha_from_dist(dist);
+void Tile::set_light(float light) {
+  auto color = shape.getFillColor();
+  color.a = alpha_from_light(light);
   shape.setFillColor(color);
+  this->light = light;
 }
+
+float Tile::get_light() const { return light; }
 
 namespace {
 // behold, the SINGLETON! (mini version)
@@ -106,6 +108,4 @@ TileKind random_kind() {
   return TileKind::Floor;
 }
 
-bool Tile::is_black() const { return color.a == 0; }
-
-void Tile::make_black() { color.a = 0; }
+bool Tile::is_black() const { return light == 0; }
