@@ -144,12 +144,16 @@ const std::array<sf::Vector2i, 4> DIRS({{0, 1}, {1, 0}, {-1, 0}, {0, -1}});
 void Game::erase_black_tiles() {
   std::vector<sf::Vector2i> black_poses;
   for (auto &[pos, tile] : tiles) {
-    tile.set_dist(distance2i(player_grid_pos, pos));
     if (tile.is_black())
       black_poses.push_back(pos); // diabolically reusing vectors
   }
   for (auto pos : black_poses)
     tiles.erase(pos);
+}
+
+unsigned int Game::get_distance(const sf::Vector2i pos) {
+  return std::min(distance2i(player_grid_pos, pos),
+                  distance2i(light_source, pos));
 }
 
 // Purest, first-class cosmic horror, for the sake of your young and innocent
@@ -161,19 +165,22 @@ void Game::regenerate_tiles() {
   std::deque<sf::Vector2i> queue;
   queue.push_back(player_grid_pos);
   tiles[player_grid_pos].set_dist(0);
+  assert(tiles.contains(light_source));
   queue.push_back(light_source);
   tiles[light_source].set_dist(0);
+  assert(!tiles[light_source].is_wall());
   while (!queue.empty()) {
     auto pos = queue.front();
     queue.pop_front();
     assert(tiles.contains(pos)); // luckily we are free from ghosts by now
+    assert(!tiles[pos].is_black());
     // not generating past walls and such cuz they're not transparent
     if (tiles[pos].is_wall())
       continue;
     for (auto dir : DIRS) {
       auto neighbour = pos + dir;
-      auto dist = distance2i(player_grid_pos, neighbour);
-      if (dist > DARK_DIST)
+      auto dist = get_distance(neighbour);
+      if (dist >= DARK_DIST)
         continue;
       if (!tiles.contains(neighbour))
         tiles[neighbour] = new_tile(neighbour, dist);

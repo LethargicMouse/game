@@ -2,6 +2,7 @@
 #define GAME_H
 
 #include "tile.h"
+#include <SFML/System/Vector2.hpp>
 #include <deque>
 #include <map>
 
@@ -21,32 +22,26 @@ public:
 
 private:
   bool is_running() const;
+  void quit();
 
   void update();
 
-  void handle_events();
-
-  void handle_event(std::optional<sf::Event>);
-
-  void handle_key_pressed(const sf::Event::KeyPressed *key_pressed);
-
-  void quit();
-
-  void draw();
-
-  void draw_player();
-
   void update_player(sf::Time delta_time);
-
-  void draw_world(sf::Vector2f origin);
-
-  void regenerate_tiles();
-
-  void update_world();
-
   void move_player(sf::Vector2f vector);
 
+  void update_world();
+  void regenerate_tiles();
   void erase_black_tiles();
+
+  unsigned int get_distance(sf::Vector2i pos);
+
+  void handle_events();
+  void handle_event(std::optional<sf::Event>);
+  void handle_key_pressed(const sf::Event::KeyPressed *key_pressed);
+
+  void draw();
+  void draw_player();
+  void draw_world(sf::Vector2f origin);
 
   sf::RenderWindow window;
 
