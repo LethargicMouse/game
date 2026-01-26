@@ -16,16 +16,13 @@ find_package(SFML 3 REQUIRED COMPONENTS Graphics Window System)
 set(SOURCES
     src/main.cpp
     src/game.cpp
-    src/player.cpp
-    src/world.cpp
     src/tile.cpp
 )
 
 # Header files
 set(HEADERS
+    src/main.h
     src/game.h
-    src/player.h
-    src/world.h
     src/tile.h
 )
 
