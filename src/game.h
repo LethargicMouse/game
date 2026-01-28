@@ -4,6 +4,7 @@
 #include "tile.h"
 #include <SFML/System/Vector2.hpp>
 #include <deque>
+#include <functional>
 #include <map>
 #include <set>
 
@@ -33,6 +34,7 @@ private:
   void update_world();
   void regenerate_tiles();
   void update_light(sf::Vector2i pos);
+  bool such_tile(sf::Vector2i pos, std::function<bool(const Tile &)> predicate);
 
   void handle_events();
   void handle_event(std::optional<sf::Event>);

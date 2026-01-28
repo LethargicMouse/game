@@ -92,12 +92,13 @@ template <typename T> T real_random_between(T min, T max) {
 
 // dont forget to update `NOT_FLOOR_PROB` if you add new tile kind
 inline constexpr float WATER_PROB = 0.1;
-inline constexpr float WALL_PROB = 0.4;
-inline constexpr float FLOOR_PROB = 0.5;
-inline constexpr float NOT_FLOOR_PROB = 1.F - WATER_PROB - WALL_PROB;
+inline constexpr float WALL_PROB = 0.3;
+inline constexpr float FLOOR_PROB = 0.6;
+inline constexpr float NOT_FLOOR_PROB = WATER_PROB + WALL_PROB;
+inline constexpr float EPS = 1e-6;
 
 TileKind random_kind() {
-  static_assert(FLOOR_PROB == 1 - NOT_FLOOR_PROB);
+  static_assert(std::abs(FLOOR_PROB + NOT_FLOOR_PROB - 1.F) <= EPS);
   float number = real_random_between(0.F, 1.F);
   // doing a bit of clever math here   (no)
   if (number <= WATER_PROB)

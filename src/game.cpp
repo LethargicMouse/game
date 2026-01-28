@@ -1,6 +1,7 @@
 #include "game.h"
 #include <SFML/System/Vector2.hpp>
 #include <SFML/Window/Keyboard.hpp>
+#include <functional>
 #include <iostream>
 
 bool Vector2iComparator::operator()(const sf::Vector2i left,
@@ -135,7 +136,12 @@ const std::array<sf::Vector2i, 8> DIRS(
     {{0, 1}, {1, 0}, {-1, 0}, {0, -1}, {1, 1}, {1, -1}, {-1, 1}, {-1, -1}});
 
 const float SQRT2 = std::sqrt(2.F);
-inline constexpr float TORCH_LIGHT = 5;
+inline constexpr float TORCH_LIGHT = 10;
+
+bool Game::such_tile(sf::Vector2i pos,
+                     std::function<bool(const Tile &)> predicate) {
+  return tiles.contains(pos) && predicate(tiles[pos]);
+}
 
 void Game::update_light(sf::Vector2i pos) {
   float light = 0;
@@ -145,9 +151,13 @@ void Game::update_light(sf::Vector2i pos) {
     for (size_t i = 0; i < 4; ++i) {
       auto straight_neigh = pos + DIRS[i];
       auto diagonal_neigh = pos + DIRS[i + 4];
-      if (tiles.contains(straight_neigh) && !tiles[straight_neigh].is_wall())
+      auto is_wall = [](const Tile &tile) { return tile.is_wall(); };
+      auto is_not_wall = [](const Tile &tile) { return !tile.is_wall(); };
+      if (such_tile(straight_neigh, is_not_wall))
         light = std::max(light, tiles[straight_neigh].get_light() - 1);
-      if (tiles.contains(diagonal_neigh) && !tiles[diagonal_neigh].is_wall())
+      bool is_thin_light = such_tile({pos.x + DIRS[i + 4].x, pos.y}, is_wall) &&
+                           such_tile({pos.x, pos.y + DIRS[i + 4].y}, is_wall);
+      if (!is_thin_light && such_tile(diagonal_neigh, is_not_wall))
         light = std::max(light, tiles[diagonal_neigh].get_light() - SQRT2);
     }
   }
