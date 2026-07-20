@@ -136,7 +136,7 @@ const std::array<sf::Vector2i, 8> DIRS(
     {{0, 1}, {1, 0}, {-1, 0}, {0, -1}, {1, 1}, {1, -1}, {-1, 1}, {-1, -1}});
 
 const float SQRT2 = std::sqrt(2.F);
-inline constexpr float TORCH_LIGHT = 10;
+inline constexpr float TORCH_LIGHT = 5;
 
 bool Game::such_tile(sf::Vector2i pos,
                      std::function<bool(const Tile &)> predicate) {
@@ -178,13 +178,13 @@ void Game::update_light(sf::Vector2i pos) {
     }
   } else
     tiles[pos] = Tile(random_kind(), pos, light);
-  std::cerr << pos.x << ' ' << pos.y << ' ' << light << '\n';
+  // std::cerr << pos.x << ' ' << pos.y << ' ' << light << '\n';
   if (is_light_new)
     for (auto dir : DIRS)
       tile_queue.push_back(pos + dir);
 }
 
-inline constexpr size_t MAX_UPDATE = 150;
+inline constexpr size_t MAX_UPDATE = 200;
 
 void Game::regenerate_tiles() {
   for (size_t _ = 0; _ < MAX_UPDATE; ++_) {
